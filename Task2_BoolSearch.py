@@ -6,6 +6,26 @@ def sort_key(word1):
             return word1.word
 
 
+class Stack:
+    def __init__(self):
+        self.items = []
+
+    def is_empty(self):
+        return len(self.items) == 0
+
+    def push(self, item):
+        self.items.insert(0, item)
+
+    def pop(self):
+        return self.items.pop(0)
+
+    def peek(self):
+        return self.items[0]
+
+    def size(self):
+        return len(self.items)
+
+
 class Word:
     def __init__(self, word, file_id, intens):
         self.word = word
@@ -18,12 +38,14 @@ class Dictionary:
     def __init__(self, direction):
         self.direction = direction
         self.wordsNumber = 0
+        self.files_dict = {}
         file_id = 0
         result_list = os.listdir(direction)
         all_words = []
         self.invertIndex = {}
         pattern = re.compile(r'\w+')
         for fileInfo in result_list:
+            self.files_dict[file_id] = fileInfo
             with open(direction + "\\" + fileInfo, 'r') as auxFile:
                 text = auxFile.read().lower()
                 res_text = pattern.findall(text)
@@ -44,45 +66,132 @@ class Dictionary:
                     self.invertIndex[r_word.word].append(r_word.file_id)
 
     def search(self, answer):
-        answer_res = answer.split(" ")
-        if len(answer_res) == 1:
-            try:
-                return self.invertIndex[answer_res[0]]
-            except KeyError:
-                return ['No such word. Maybe, you wrote an uppercase letter']
-        for word in answer_res:
-            if word not in self.invertIndex.keys():
-                return ['No such word. Maybe, you wrote an uppercase letter']
-        for i in range(len(answer_res)):
-            if answer_res[i] == 'AND':
-                if answer_res[i + 1] == 'NOT':
-                    list_aux = self.NOT(answer_res[i - 1].strip(), answer_res[i + 1].strip())
-                    for z in range(3):
-                        answer_res.remove(answer_res[i - 1])
-                    answer_res.insert(i - 1, list_aux)
-                else:
-                    list_aux = self.AND(answer_res[i - 1].strip(), answer_res[i + 1].strip())
-                    for z in range(3):
-                        answer_res.remove(answer_res[i - 1])
-                    answer_res.insert(i - 1, list_aux)
-            elif answer_res[i] == 'OR':
-                list_aux = self.OR(answer_res[i - 1].strip(), answer_res[i + 1].strip())
-                for z in range(3):
-                    answer_res.remove(answer_res[i - 1])
-                answer_res.insert(i - 1, list_aux)
-            if i + 1 > len(answer_res):
-                break
-        return answer_res[0]
+        polish_write = []
+        operator_stack = Stack()
+        answer = answer.split(" ")
+        for word in answer:
+            if word == "AND":
+                operator_stack.push("AND")
+            elif word == "OR":
+                if not operator_stack.is_empty():
+                    if operator_stack.peek() == "AND":
+                        polish_write.append("AND")
+                        operator_stack.pop()
+                operator_stack.push("OR")
+            elif word == "AND" and answer.next() == "NOT":
+                operator_stack.push("AND NOT")
+            elif word == '(':
+                operator_stack.push('(')
+            elif word == ')':
+                operator = operator_stack.pop()
+                polish_write.append(operator)
+                operator_stack.pop()
+            else:
+                polish_write.append(word)
+        while not operator_stack.is_empty():
+            operator = operator_stack.pop()
+            polish_write.append(operator)
+
+        result_lists = {}
+        z = 0
+        name = ""
+        for i in range(len(polish_write) + 1):
+            i = z
+            if polish_write[i] == "OR":
+                try:
+                    first_list = self.invertIndex[polish_write[i - 2]]
+                    first_list.pop(0)
+                except KeyError:
+                    try:
+                        first_list = result_lists[polish_write[i-2]]
+                        result_lists.pop(polish_write[i-2])
+                    except KeyError:
+                        print("No such word: " + polish_write[i-2])
+                        return
+                try:
+                    second_list = self.invertIndex[polish_write[i - 1]]
+                    second_list.pop(0)
+                except KeyError:
+                    try:
+                        second_list = result_lists[polish_write[i-1]]
+                        result_lists.pop(polish_write[i-1])
+                    except KeyError:
+                        print("No such word: " + polish_write[i-1])
+                        return
+                name = polish_write[i - 2] + "OR" + polish_write[i - 1]
+                polish_write.remove(polish_write[i-2])
+                polish_write.remove(polish_write[i-2])
+                polish_write.remove(polish_write[i-2])
+                result_lists[name] = self.OR(first_list, second_list)
+                polish_write.insert(i-2, name)
+                z = i - 2
+            elif polish_write[i] == "AND":
+                try:
+                    first_list = self.invertIndex[polish_write[i - 2]]
+                    first_list.pop(0)
+                except KeyError:
+                    try:
+                        first_list = result_lists[polish_write[i-2]]
+                        result_lists.pop(polish_write[i-2])
+                    except KeyError:
+                        print("No such word: " + polish_write[i-2])
+                        return
+                try:
+                    second_list = self.invertIndex[polish_write[i - 1]]
+                    second_list.pop(0)
+                except KeyError:
+                    try:
+                        second_list = result_lists[polish_write[i-1]]
+                        result_lists.pop(polish_write[i-1])
+                    except KeyError:
+                        print("No such word: " + polish_write[i-1])
+                        return
+                name = polish_write[i - 2] + "AND" + polish_write[i - 1]
+                polish_write.remove(polish_write[i-2])
+                polish_write.remove(polish_write[i-2])
+                polish_write.remove(polish_write[i-2])
+                result_lists[name] = self.AND(first_list, second_list)
+                polish_write.insert(i-2, name)
+                z = i - 2
+            elif polish_write[i] == "AND NOT":
+                try:
+                    first_list = self.invertIndex[polish_write[i - 2]]
+                    first_list.pop(0)
+                except KeyError:
+                    try:
+                        first_list = result_lists[polish_write[i-2]]
+                        result_lists.pop(polish_write[i-2])
+                    except KeyError:
+                        print("No such word: " + polish_write[i-2])
+                        return
+                try:
+                    second_list = self.invertIndex[polish_write[i - 1]]
+                    second_list.pop(0)
+                except KeyError:
+                    try:
+                        second_list = result_lists[polish_write[i-1]]
+                        result_lists.pop(polish_write[i-1])
+                    except KeyError:
+                        print("No such word: " + polish_write[i-1])
+                        return
+                name = polish_write[i - 2] + "ANDNOT" + polish_write[i - 1]
+                polish_write.remove(polish_write[i-2])
+                polish_write.remove(polish_write[i-2])
+                polish_write.remove(polish_write[i-2])
+                result_lists[name] = self.ANDNOT(first_list, second_list)
+                polish_write.insert(i-2, name)
+                z = i - 2
+            else:
+                z = i + 1
+        files_res = []
+        for nm in result_lists[name]:
+            files_res.append(self.files_dict[nm])
+        return files_res
 
     def AND(self, files1, files2):
         res_list = []
         i = 0
         j = 0
-        if type(files1) is not 'list':
-            i = 1
-        if type(files2) is not 'list':
-            files2 = self.invertIndex[files2]
-            j = 1
         while i < len(files1) and j < len(files2):
             if files1[i] == files2[i]:
                 res_list.append(files1[i])
@@ -94,32 +203,24 @@ class Dictionary:
                 j += 2
         return res_list
 
-    def OR(self, files1, files2):
-        if type(files1) is not 'list':
-            files1 = self.invertIndex[files1]
-            files1.remove(0)
-        if type(files2) is not 'list':
-            files2 = self.invertIndex[files2]
-            files2.remove(0)
-        res_list = files1 + files2
+    def OR(self, first_list, second_list):
+        res_list = []
+        for el in first_list:
+            res_list.append(el)
+        for el in second_list:
+            if el not in res_list:
+                res_list.append(el)
         return res_list
 
-    def NOT(self, files1, files2):
-        res_list = []
-        if type(files1) is not 'list':
-            files1 = self.invertIndex[files1]
-            files1.remove(0)
-        if type(files2) is not 'list':
-            files2 = self.invertIndex[files2]
-            files2.remove(0)
-        for id in files1:
-            if id not in files2:
-                res_list.append(id)
-        return res_list
+    def ANDNOT(self, first_list, second_list):
+        for el in second_list:
+            if el in first_list:
+                first_list.remove(el)
+        return first_list
 
 
 myDict = Dictionary("D:\codd\PythonWorkspace\Information-Retrieval\Files")
-print("Enter your answer. To stop this session enter \"stop\"")
+print("Enter your question. To stop this session enter \"stop\"")
 text_input = input()
 while text_input != "stop":
     print(myDict.search(text_input))

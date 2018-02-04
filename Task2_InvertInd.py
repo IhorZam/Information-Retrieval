@@ -3,7 +3,7 @@ import re
 
 
 def sort_key(word1):
-            return word1.word
+    return word1.word
 
 
 class Word:
