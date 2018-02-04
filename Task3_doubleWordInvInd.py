@@ -1,4 +1,5 @@
 import os
+import re
 
 
 def sort_key(word1):
@@ -21,20 +22,26 @@ class Dictionary:
         result_list = os.listdir(direction)
         all_words = []
         self.invertIndex = {}
+        pattern = re.compile(r'\w+[\'\-]?\w+')
         for fileInfo in result_list:
-            with open(direction + "\\" + fileInfo, 'r') as auxFile:
+            with open(direction + "/" + fileInfo, 'r') as auxFile:
                 text = auxFile.read().lower()
-                res_text = text.split(" ")
+                res_text = pattern.findall(text)
                 for i in range(len(res_text)):
                     if i + 1 < len(res_text):
-                        updated_word = res_text[i].lstrip('\'\".,!?\n').rstrip('\n\'\".,!?') + " " + res_text[i+1].lstrip('\'\".,!?\n').rstrip('\n\'\".,!?')
+                        updated_word = res_text[i] + " " + res_text[i+1]
                         all_words.append(DoubleWord(updated_word, file_id, 1))
                     else:
                         all_words.append(DoubleWord(res_text[i], file_id, 1))
             file_id += 1
-        all_words.sort(key=sort_key)
+            all_words.sort(key=sort_key)
+            self.add_to_invert(all_words)
+            all_words = []
+
+    def add_to_invert(self, all_words):
         for r_word in all_words:
             if r_word.double_word not in self.invertIndex.keys():
+                self.wordsNumber += 1
                 self.invertIndex[r_word.double_word] = [r_word.intens, r_word.file_id]
             else:
                 self.invertIndex[r_word.double_word][0] += 1
@@ -44,5 +51,5 @@ class Dictionary:
                     self.invertIndex[r_word.double_word].append(r_word.file_id)
 
 
-myDict = Dictionary("D:\Dropbox\PythonWorkspace\Information-Retrieval\Files")
+myDict = Dictionary("/home/ihorzam/Dropbox/PythonWorkspace/Information-Retrieval/Files")
 print(myDict.wordsNumber)
