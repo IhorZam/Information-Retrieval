@@ -100,5 +100,7 @@ class Dictionary:
                 i += 1
 
 
+
+
 myDict = Dictionary("/home/ihorzam/Dropbox/PythonWorkspace/Information-Retrieval/Files")
-print(myDict.search("village /1 seen /1 such"))
+print(myDict.search("voice /1 squeakily"))
