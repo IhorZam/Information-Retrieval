@@ -168,7 +168,7 @@ class Dictionary:
             return self.get_words_from_gram(answer)
 
 
-myDict = Dictionary("/home/ihorzam/Dropbox/PythonWorkspace/Information-Retrieval/Files")
+myDict = Dictionary("/home/ihorzam/Work/PythonFiles/FilesToWork")
 print("Enter your question. To stop this session enter \"stop\"")
 text_input = input()
 while text_input != "stop":

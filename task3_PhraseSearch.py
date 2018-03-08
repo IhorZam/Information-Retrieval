@@ -100,7 +100,5 @@ class Dictionary:
                 i += 1
 
 
-
-
 myDict = Dictionary("/home/ihorzam/Dropbox/PythonWorkspace/Information-Retrieval/Files")
 print(myDict.search("voice /1 squeakily"))

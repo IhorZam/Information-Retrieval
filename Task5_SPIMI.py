@@ -1,6 +1,8 @@
 import os
 import re
-import sys
+import codecs
+import time
+start_time = time.time()
 
 
 def sort_key(word1):
@@ -20,15 +22,42 @@ class Dictionary:
         for fileInfo in os.listdir(direction + "/FilesToWork"):
             self.files_dict[file_id] = fileInfo
             with open(direction + "/FilesToWork/" + fileInfo, 'r') as auxFile:
-                text = auxFile.read().lower()
-                text = pattern.findall(text)
-                for word in text:
-                    self.add_word(word, file_id)
-                    if len(self.all_words) > 5000:
-                        self.write_info()
-                file_id += 1
+                text = auxFile.readline()
+                while text:
+                    text = pattern.findall(text.lower())
+                    for word in text:
+                        self.add_word(word, file_id)
+                        if len(self.all_words) > 15000:
+                            self.write_info()
+                            #print("Written" + str(self.res_file_counter))
+                    text = auxFile.readline()
+            file_id += 1
+            print("File read")
+
         self.write_info()
         self.merge_files()
+
+    def checkDecode(self, path):
+        encoding = [
+            'utf-8',
+            'GBK',
+            'ASCII',
+            'US-ASCII',
+            'Big5',
+            'windows-1251',
+            'cp500'
+        ]
+        correct_encoding = ''
+
+        for enc in encoding:
+            try:
+                open(path, encoding=enc).readline()
+            except (UnicodeDecodeError, LookupError):
+                pass
+            else:
+                correct_encoding = enc
+                break
+        return correct_encoding
 
     def add_word(self, word, file_id):
         if word not in self.invertIndex.keys():
@@ -40,6 +69,7 @@ class Dictionary:
                 self.invertIndex[word].append(file_id)
 
     def merge_files(self):
+        print("Start merging...")
         result_list = os.listdir(self.direction + "/ResFiles")
         self.res_file_counter = 0
         while len(result_list) != 1:
@@ -129,4 +159,5 @@ class Dictionary:
 
 
 myDict = Dictionary("/home/ihorzam/Work/PythonFiles/")
+print("--- %s seconds ---" % (time.time() - start_time))
 print("Ready")
