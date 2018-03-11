@@ -88,30 +88,32 @@ class ThreadMerging(threading.Thread):
                 aux_line1 = file_one.readline()
                 aux_line2 = file_two.readline()
                 while aux_line1 and aux_line2:
+                    res_line = ""
                     if type(aux_line1) is not list:
                         aux_line1 = aux_line1.split(" ")
                     if type(aux_line2) is not list:
                         aux_line2 = aux_line2.split(" ")
                     if aux_line1[0] == aux_line2[0]:
                         cap = int(aux_line1[1][:-1]) + int(aux_line2[1][:-1])
-                        res_line = aux_line1[0] + " " + str(cap) + "k"
                         positions = list(set(aux_line1[2:]) | set(aux_line2[2:]))
                         for i in range(len(positions)):
                             positions[i] = int(positions[i].strip())
                         positions.sort()
                         if last:
                             word_counter += 1
-                            res_line = self.getGcode(word_counter)
+                            if word_counter == 1:
+                                res_line = "1" + self.getGcode(word_counter)
+                            else:
+                                res_line = self.getGcode(word_counter)
                             for i in range(len(positions)):
-                                if i == 1:
+                                if i == 0:
                                     res_line += self.getGcode(positions[i])
-                                elif i + 1 < len(positions) - 1:
-                                    range1 = self.getGcode(int(positions[i + 1]) - int(positions[i]))
-                                    res_line += str(range1)
                                 else:
-                                    res_line += self.getGcode(positions[i])
+                                    range1 = self.getGcode(positions[i] - positions[i - 1])
+                                    res_line += range1
                             res.write(self.convertToBytes(res_line))
                         else:
+                            res_line = aux_line1[0] + " " + str(cap) + "k"
                             for i in range(len(positions)):
                                 res_line += " " + str(positions[i])
                             res_line += "\n"
@@ -119,48 +121,50 @@ class ThreadMerging(threading.Thread):
                         aux_line1 = file_one.readline()
                         aux_line2 = file_two.readline()
                     elif aux_line1[0] < aux_line2[0]:
-                        res_line = aux_line1[0] + " " + aux_line1[1]
                         positions = aux_line1[2:]
                         for i in range(len(positions)):
                             positions[i] = int(positions[i].strip())
                         positions.sort()
                         if last:
                             word_counter += 1
-                            res_line = self.getGcode(word_counter)
+                            if word_counter == 1:
+                                res_line = "1" + self.getGcode(word_counter)
+                            else:
+                                res_line = self.getGcode(word_counter)
                             for i in range(len(positions)):
-                                if i == 1:
+                                if i == 0:
                                     res_line += self.getGcode(positions[i])
-                                elif i + 1 < len(positions) - 1:
-                                    range1 = self.getGcode(int(positions[i + 1]) - int(positions[i]))
-                                    res_line += str(range1)
                                 else:
-                                    res_line += self.getGcode(positions[i])
+                                    range1 = self.getGcode(positions[i] - positions[i - 1])
+                                    res_line += range1
                             res.write(self.convertToBytes(res_line))
                         else:
+                            res_line = aux_line1[0] + " " + aux_line1[1]
                             for i in range(len(positions)):
                                 res_line += " " + str(positions[i])
                             res_line += "\n"
                             res.write(res_line)
                         aux_line1 = file_one.readline()
                     else:
-                        res_line = aux_line2[0] + " " + aux_line2[1]
                         positions = aux_line2[2:]
                         for i in range(len(positions)):
                             positions[i] = int(positions[i].strip())
                         positions.sort()
                         if last:
                             word_counter += 1
-                            res_line = self.getGcode(word_counter)
+                            if word_counter == 1:
+                                res_line = "1" + self.getGcode(word_counter)
+                            else:
+                                res_line = self.getGcode(word_counter)
                             for i in range(len(positions)):
-                                if i == 1:
+                                if i == 0:
                                     res_line += self.getGcode(positions[i])
-                                elif i + 1 < len(positions) - 1:
-                                    range1 = self.getGcode(int(positions[i + 1]) - int(positions[i]))
-                                    res_line += str(range1)
                                 else:
-                                    res_line += self.getGcode(positions[i])
+                                    range1 = self.getGcode(positions[i] - positions[i - 1])
+                                    res_line += range1
                             res.write(self.convertToBytes(res_line))
                         else:
+                            res_line = aux_line2[0] + " " + aux_line2[1]
                             for i in range(len(positions)):
                                 res_line += " " + str(positions[i])
                             res_line += "\n"
@@ -168,26 +172,28 @@ class ThreadMerging(threading.Thread):
                         aux_line2 = file_two.readline()
                 if aux_line1:
                     while aux_line1:
+                        res_line = ""
                         if type(aux_line1) is not list:
                             aux_line1 = aux_line1.split(" ")
-                        res_line = aux_line1[0] + " " + aux_line1[1]
                         positions = aux_line1[2:]
                         for i in range(len(positions)):
                             positions[i] = int(positions[i].strip())
                         positions.sort()
                         if last:
                             word_counter += 1
-                            res_line = self.getGcode(word_counter)
+                            if word_counter == 1:
+                                res_line = "1" + self.getGcode(word_counter)
+                            else:
+                                res_line = self.getGcode(word_counter)
                             for i in range(len(positions)):
-                                if i == 1:
+                                if i == 0:
                                     res_line += self.getGcode(positions[i])
-                                elif i + 1 < len(positions) - 1:
-                                    range1 = self.getGcode(int(positions[i + 1]) - int(positions[i]))
-                                    res_line += str(range1)
                                 else:
-                                    res_line += self.getGcode(positions[i])
+                                    range1 = self.getGcode(positions[i] - positions[i - 1])
+                                    res_line += range1
                             res.write(self.convertToBytes(res_line))
                         else:
+                            res_line = aux_line1[0] + " " + aux_line1[1]
                             for i in range(len(positions)):
                                 res_line += " " + str(positions[i])
                             res_line += "\n"
@@ -195,31 +201,34 @@ class ThreadMerging(threading.Thread):
                         aux_line1 = file_one.readline()
                 if aux_line2:
                     while aux_line2:
+                        res_line = ""
                         if type(aux_line2) is not list:
                             aux_line2 = aux_line2.split(" ")
-                        res_line = aux_line2[0] + " " + aux_line2[1]
                         positions = aux_line2[2:]
                         for i in range(len(positions)):
                             positions[i] = int(positions[i].strip())
                         positions.sort()
                         if last:
                             word_counter += 1
-                            res_line = self.getGcode(word_counter)
+                            if word_counter == 1:
+                                res_line = "1" + self.getGcode(word_counter)
+                            else:
+                                res_line = self.getGcode(word_counter)
                             for i in range(len(positions)):
-                                if i == 1:
+                                if i == 0:
                                     res_line += self.getGcode(positions[i])
-                                elif i + 1 < len(positions) - 1:
-                                    range1 = self.getGcode(int(positions[i + 1]) - int(positions[i]))
-                                    res_line += str(range1)
                                 else:
-                                    res_line += self.getGcode(positions[i])
+                                    range1 = self.getGcode(positions[i] - positions[i - 1])
+                                    res_line += range1
                             res.write(self.convertToBytes(res_line))
                         else:
+                            res_line = aux_line2[0] + " " + aux_line2[1]
                             for i in range(len(positions)):
                                 res_line += " " + str(positions[i])
                             res_line += "\n"
                             res.write(res_line)
                         aux_line2 = file_two.readline()
+        res.close()
         os.remove(direction + "/ResFiles/" + file1)
         os.remove(direction + "/ResFiles/" + file2)
 
@@ -240,6 +249,33 @@ class ThreadMerging(threading.Thread):
             length += "1"
         length += "0"
         return length + binar
+
+    def invert_decoder(self, dir):
+        with open(dir, 'rb') as byteTestRead:
+            line = "{0:b}".format(int.from_bytes(byteTestRead.readline(), byteorder='big'))
+            zsuv_length = 0
+            result_line = ""
+            aux_byte = "1"
+            i = 0
+            line = line[1:]
+            while i < len(line):
+                if line[i] == '0' and zsuv_length == 0:
+                    result_line += aux_byte + " "
+                    i += 1
+                elif line[i] == '1':
+                    zsuv_length += 1
+                    i += 1
+                elif line[i] == '0':
+                    if i + zsuv_length > len(line):
+                        continue
+                    i += 1
+                    for j in range(i, zsuv_length + i):
+                        aux_byte += line[j]
+                    result_line += str(int(aux_byte, 2)) + " "
+                    aux_byte = "1"
+                    i = i + zsuv_length
+                    zsuv_length = 0
+            return result_line
 
     def last_dict(self, first, second):
         with open(direction + "/ResFiles/" + first, 'r') as file_one:
@@ -413,6 +449,8 @@ class ThreadMerging(threading.Thread):
                             aux_words.append(aux_line2[0])
                             table.write(str(word_counter) + " " + aux_line2[1] + " " + str(glob_counter) + "\n")
                         aux_line2 = file_two.readline()
+                dicti.close()
+                table.close()
 
     def make_word(self, root, end, aux):
         res_word = str(len(root)) + root[:end] + "*" + root[end:]
@@ -430,7 +468,7 @@ class Dictionary:
 
     def __init__(self, direction):
         self.res_file_counter = 0
-        self.file_id = 0
+        self.file_id = 1
         self.direction = direction
         self.queueFill()
         threads = []
@@ -443,9 +481,9 @@ class Dictionary:
         self.merge_files()
 
     def queueFill(self):
-        for fileInfo in os.listdir(direction + "/FilesToWork/"):
+        for fileInfo in os.listdir(direction + "/FilesToTest/"):
             files_dict[self.file_id] = fileInfo
-            clientPool.put([direction + "/FilesToWork/" + fileInfo, self.file_id])
+            clientPool.put([direction + "/FilesToTest/" + fileInfo, self.file_id])
             self.file_id += 1
 
     def checkDecode(self, path):
